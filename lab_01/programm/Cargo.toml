@@ -1,0 +1,15 @@
+[package]
+name = "programm"
+version = "0.1.0"
+authors = ["Pavel Khetagurov <khetagurow1@yandex.ru>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sysinfo = "0.11.5"
+hyper = "*"
+reqwest = {version = "*", features = ["blocking"]}
+futures = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
