@@ -71,15 +71,19 @@ impl Rotors {
     pub fn encrypt(&mut self, letter: u8) -> u8 {
         let mut encrypted_letter = letter as u8;
 
+        // print!("Encrypt letter: {}; ", encrypted_letter);
         for rotor in &self.rotors {
             encrypted_letter = rotor.forward(encrypted_letter);
         }
+        // print!("Encrypt letter st1: {}; ", encrypted_letter);
         encrypted_letter = self.reflector.reflect(encrypted_letter);
+        // print!("Encrypt letter refl: {}; ", encrypted_letter);
         self.rotors.reverse();
         for rotor in &self.rotors {
             encrypted_letter = rotor.backward(encrypted_letter);
         }
         self.rotors.reverse();
+        // print!("Encrypt letter st2: {}; ", encrypted_letter);
 
         for rotor in &mut self.rotors {
             if !rotor.click() {
