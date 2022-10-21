@@ -11,7 +11,7 @@ use num_traits::cast::ToPrimitive;
 fn main() {
     let mut choose = 1;
     let mut buf = String::default();
-    let mut encryptor = Encryptor::new("masecrkey123456X");
+    let mut encryptor = Encryptor::new("rf6GeQysVk1390Po");
     while choose != 0 {
         print_menu();
         stdin().read_line(&mut buf).expect("Expected choose");

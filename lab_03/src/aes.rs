@@ -83,6 +83,7 @@ fn key_expansion_AES128(key_bytes: &[u8;16]) -> [[u8;4];44] {
     // Nr = 10 + 1 раундов, Nb = 4 блока по 4 байта. => 11 * 4 = 44
     for i in 4..44 {
         let mut temp = expanded_key[i - 1];
+        // каждая 4 строка крутится, заменяется и иксорится с константой раунда
         if  i % N == 0 {
             let mut rcon = [0u8;4];
             rcon[0] = RC[i/N];
@@ -93,6 +94,7 @@ fn key_expansion_AES128(key_bytes: &[u8;16]) -> [[u8;4];44] {
         } else {
             temp = expanded_key[i-1];
         }
+        // иксор предыдущей ьтой же строки у предыдущего ключа с предыдущей строкой
         expanded_key[i] = xor_words(&expanded_key[i-N], &temp);
     }
 
@@ -198,6 +200,7 @@ fn inv_shift_rows(state:&mut [[u8;4];4]) {
     }
 }
 
+// pole galua
 fn galois_multiplication(ap: u8, bp: u8) -> u8 {
     let mut p = 0u8;
     let mut high_bit = 0u8;
@@ -228,6 +231,10 @@ fn galois_multiplication(ap: u8, bp: u8) -> u8 {
     return p & 0xFF;
 }
 
+/// четыре байта каждой колонки State смешиваются, используя для этого обратимую линейную трансформацию. 
+///
+///  MixColumns обрабатывает состояния по колонкам, трактуя каждую из них как полином третьей степени.
+///  Над этими полиномами производится умножение в  GF(2^{8}) по модулю x^{4}+1  на фиксированный многочлен
 fn mix_columns(state: &mut [[u8;4];4]) {
     for i in 0..4 {
 
@@ -293,10 +300,10 @@ pub fn encrypt_block_AES128(aes128: &Encryptor, bytes: &[u8;16]) -> [u8;16] {
     add_round_key(&mut state, &clone_into_array(&aes128.expanded_key[0..4]));
 
     for i in 1..10 {
-        sub_bytes(&mut state);
-        shift_rows(&mut state);
-        mix_columns(&mut state);
-        add_round_key(&mut state, &clone_into_array(&aes128.expanded_key[i*4..(i + 1)*4]));
+        sub_bytes(&mut state); // замена каждого байта через s-box
+        shift_rows(&mut state); // цикличиский сдвиг строк на разные величины
+        mix_columns(&mut state); // смешивает данные столбцов
+        add_round_key(&mut state, &clone_into_array(&aes128.expanded_key[i*4..(i + 1)*4]));  // иксор ключа с состоянием
     }
 
     sub_bytes(&mut state);

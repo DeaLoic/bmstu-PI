@@ -8,9 +8,8 @@ pub struct RSAEncryptor {
     n: BigUint,
 }
 
-impl RSAEncryptor {
+impl RSASigner {
     pub fn new() -> Self {
-        println!("Start");
         let (q, p) = Self::get_primes();
 
         println!("Primes: {} {}", p, q);
@@ -23,14 +22,8 @@ impl RSAEncryptor {
         println!("N: {:?}", n.to_bytes_le());
         println!("N len: {}", n.to_bytes_le().len());
 
-        // взаимно просты
-        let pub_key = Self::compute_public_key(phi.clone());
-        println!("Public key: {}", pub_key);
-
-        // обратно мультипликативеын  d * pub = 1 mod(phi)
+        let pub_key = Self::compute_public_key(phi.clone(), n.clone());
         let private_key = Self::compute_private_key(pub_key.clone(), phi.clone());
-
-        println!("Private key: {}", private_key);
 
         Self {
             private_key,
@@ -66,7 +59,7 @@ impl RSAEncryptor {
         (first - BigUint::from(1 as u32)) * (second - BigUint::from(1 as u32))
     }
 
-    fn compute_public_key(phi: BigUint) -> BigUint {
+    fn compute_public_key(phi: BigUint, n: BigUint) -> BigUint {
         let mut nod = BigUint::from(0 as u32);
         let mut num = phi.clone() - BigUint::from(1 as u32);
         while nod != BigUint::from(1 as u32) && num < phi {
@@ -76,21 +69,22 @@ impl RSAEncryptor {
         return num;
     }
 
-    /// ax + by = 1
-    /// 
-    fn gcd(a: BigInt, b: BigInt) -> (BigInt, BigInt) {
-        if a == BigInt::from(0 as u32) {
-            return (BigInt::from(0 as u32), BigInt::from(1 as u32));
-        };
-
-        let (x1, y1) = Self::gcd(b.clone() % a.clone(), a.clone());
-        let x = y1 - (b / a) * x1.clone();
-        let y = x1;
-        return (x, y);
-    }
-
     fn compute_private_key(pub_key: BigUint, phi: BigUint) -> BigUint {
-        let (mut t, _) =  Self::gcd(BigInt::from(pub_key.clone()), BigInt::from(phi.clone()));
+        let mut t = BigInt::from(0 as u32);
+        let mut r = BigInt::from(phi.clone()); // остаток от деления
+        let mut newt = BigInt::from(1 as u32);
+        let mut newr = BigInt::from(pub_key.clone());
+
+        while newr != BigInt::from(0 as u32) {
+            let quotient = r.clone() / newr.clone();
+            let tmpt = newt.clone();
+            newt = t.clone() - quotient.clone() * newt.clone();
+            t = tmpt.clone();
+
+            let tmpr = newr.clone();
+            newr = r.clone() - quotient.clone() * newr.clone();
+            r = tmpr.clone();
+        }
 
         if t < BigInt::from(0 as u32) {
             t += BigInt::from(phi.clone());
